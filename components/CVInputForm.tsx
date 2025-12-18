@@ -262,7 +262,7 @@ const CVInputForm: React.FC<CVInputFormProps> = ({ onProcess }) => {
           disabled={(!cvFile && !cvText) || (!jdFile && !jdText)}
           className="px-16 py-5 bg-[#F26522] text-white rounded-full font-black text-2xl shadow-[0_15px_40px_-10px_rgba(242,101,34,0.5)] hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed flex items-center space-x-4 uppercase tracking-tighter"
         >
-          <span>TIẾN HÀNH TỐI ƯU</span>
+          <span>Sửa CV</span>
           <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
           </svg>
