@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { optimizeCV, FileData } from './services/geminiService';
 import { AppStatus, CVAnalysisResult } from './types';
@@ -109,10 +108,8 @@ const App: React.FC = () => {
              alt="EIV Logo" 
              className="h-12 w-auto object-contain"
            />
-           <div className="w-16 h-px bg-slate-200"></div>
-           <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Recruitment Excellence System v2.0</p>
         </div>
-        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">© 2009 - 2024 EIV Education Vietnam. All Rights Reserved.</p>
+        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest italic">© 2025 Nam Nguyen · Powered by Gemini</p>
       </footer>
     </div>
   );
