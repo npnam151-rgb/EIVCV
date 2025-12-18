@@ -1,0 +1,5 @@
+{
+  "name": "CV Tailor Pro",
+  "description": "An AI-powered application that optimizes candidate CVs to match specific job descriptions and company templates using Gemini AI.",
+  "requestFramePermissions": []
+}
