@@ -46,11 +46,13 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
     const pages: any[] = [];
     let currentExpList: any[] = [];
     
-    const UNIT_LIMIT_PAGE_1 = 130;
-    const UNIT_LIMIT_OTHER = 180;  
-    const WEIGHT_EXP_HEADER = 15;   
-    const WEIGHT_BULLET = 6;        
-    const WEIGHT_EDUCATION = 45;    
+    // Tăng các giới hạn để tận dụng tối đa chiều cao trang A4
+    const UNIT_LIMIT_PAGE_1 = 185; // Trang 1 có Header và Education nên giới hạn thấp hơn trang sau một chút
+    const UNIT_LIMIT_OTHER = 220;  // Các trang sau chỉ có Experience nên chứa được nhiều hơn
+    
+    const WEIGHT_EXP_HEADER = 12;   // Trọng số cho tiêu đề công ty/vị trí
+    const WEIGHT_BULLET = 5;        // Trọng số cho mỗi dòng mô tả
+    const WEIGHT_EDUCATION = 40;    // Trọng số cho phần học vấn
 
     let currentWeight = WEIGHT_EDUCATION; 
     let isFirstPage = true;
@@ -59,6 +61,7 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
       const expWeight = WEIGHT_EXP_HEADER + (exp.points.length * WEIGHT_BULLET);
       const limit = isFirstPage ? UNIT_LIMIT_PAGE_1 : UNIT_LIMIT_OTHER;
 
+      // Nếu thêm kinh nghiệm này vào sẽ vượt quá giới hạn trang
       if (currentWeight + expWeight > limit && currentExpList.length > 0) {
         pages.push({
           isFirst: isFirstPage,
