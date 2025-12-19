@@ -104,7 +104,7 @@ const App: React.FC = () => {
         ) : status === AppStatus.COMPLETED && result ? (
           <div className="animate-in slide-in-from-bottom-8 duration-700">
             <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4 print:hidden">
-              <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">XỬ LÝ HOÀT TẤT</h2>
+              <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">XỬ LÝ HOÀN TẤT</h2>
               <button onClick={handleReset} className="px-8 py-3 bg-white text-slate-700 border-2 border-slate-200 rounded-2xl font-black text-sm uppercase tracking-widest hover:border-[#F26522] transition-all">Sửa ứng viên mới</button>
             </div>
             <ResultDisplay result={result} />
