@@ -3,6 +3,7 @@ import React, { useState, useCallback } from 'react';
 import { optimizeCV, FileData } from './services/geminiService';
 import { AppStatus, CVAnalysisResult } from './types';
 import Header from './components/Header';
+import Footer from './components/Footer';
 import CVInputForm from './components/CVInputForm';
 import ResultDisplay from './components/ResultDisplay';
 import LoadingOverlay from './components/LoadingOverlay';
@@ -112,6 +113,7 @@ const App: React.FC = () => {
       </main>
 
       {status === AppStatus.PROCESSING && <LoadingOverlay />}
+      <Footer />
     </div>
   );
 };

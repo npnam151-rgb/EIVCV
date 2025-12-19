@@ -27,7 +27,7 @@ const LoadingOverlay: React.FC = () => {
             <div className="w-4 h-4 bg-indigo-600 rounded-full animate-pulse"></div>
           </div>
         </div>
-        <h3 className="text-lg font-bold text-slate-900 mb-2">Đang thực hiện ảo thuật...</h3>
+        <h3 className="text-lg font-bold text-slate-900 mb-2 italic">Cooking...</h3>
         <p className="text-sm text-slate-500 h-10 transition-all duration-500">
           {messages[messageIndex]}
         </p>
