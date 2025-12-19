@@ -73,25 +73,25 @@ export const optimizeCV = async (
   jdData: string | FileData
 ): Promise<CVAnalysisResult> => {
   try {
+    if (!process.env.API_KEY) {
+      throw new Error("API_KEY_MISSING");
+    }
+
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
     const parts: any[] = [
       {
         text: `Bạn là chuyên gia nhân sự tại EIV Education. 
         NHIỆM VỤ:
-        1. Trích xuất thông tin từ CV ứng viên.
-        2. Tối ưu hóa nội dung CV để phù hợp nhất với JD (Job Description) được cung cấp, theo chuẩn phong cách chuyên nghiệp của EIV.
-        3. Tối ưu hóa kinh nghiệm giảng dạy sử dụng thuật ngữ tiếng Anh chuyên ngành (ESL, TEFL, TESOL, Classroom Management, Lesson Planning...).
+        1. Trích xuất và tối ưu hóa CV giáo viên theo chuẩn EIV.
+        2. Tối ưu hóa thuật ngữ ESL chuyên ngành.
         
-        QUY TẮC DÀN TRANG A4 (CỰC KỲ QUAN TRỌNG):
-        - Ưu tiên dồn nội dung vào 1 trang duy nhất nếu tổng lượng kinh nghiệm không quá lớn. Nếu cần, hãy tóm tắt các kinh nghiệm cũ hoặc ít liên quan để trang 1 không bị tràn.
-        - Nếu buộc phải sang trang 2, trang 2 phải chứa ít nhất 3/4 nội dung của mục kinh nghiệm cuối cùng đó, hoặc chứa ít nhất 2 mục kinh nghiệm đầy đủ. Đừng để trang 2 chỉ có 1-2 dòng lẻ loi.
-        - Điều chỉnh linh hoạt số lượng bullet points: 
-          + Tăng chi tiết nếu CV quá ngắn (để lấp đầy trang 1).
-          + Cắt bớt/viết gọn nếu CV bị tràn trang 1 chỉ một chút (để dồn vào 1 trang).
-        - Mục tiêu: Một bản CV cân đối, chuyên nghiệp và đầy đặn.
-
-        4. Trả về kết quả JSON theo đúng schema quy định.`
+        QUY TẮC DÀN TRANG THEO SỐ LƯỢ lượng KINH NGHIỆM (QUAN TRỌNG NHẤT):
+        - Nếu ứng viên có ≤ 4 mục kinh nghiệm: BẮT BUỘC viết chi tiết (mỗi mục 4-6 bullet points) để dồn toàn bộ vào 1 trang A4 thật đầy đặn và chuyên nghiệp.
+        - Nếu ứng viên có > 4 mục kinh nghiệm: Hãy chọn lọc những mục quan trọng nhất, và chuẩn bị để nội dung dàn sang trang thứ 2 (mục thứ 5 trở đi sẽ nằm ở trang 2).
+        - Tuyệt đối không để trang 2 chỉ có vài dòng lẻ loi. Nếu có mục thứ 5, hãy viết đủ dài để trang 2 chiếm ít nhất 1/2 diện tích.
+        
+        Mục tiêu: Tạo ra bản CV cân đối về mặt thị giác dựa trên số lượng đầu mục kinh nghiệm.`
       }
     ];
 
@@ -103,6 +103,7 @@ export const optimizeCV = async (
     }
 
     if (typeof jdData === 'string') {
+      // Fixed typo: changed jdText to jdData
       parts.push({ text: `JOB DESCRIPTION (JD) CONTENT:\n${jdData}` });
     } else {
       parts.push({ text: "JOB DESCRIPTION (JD) FILE:" });
@@ -110,18 +111,19 @@ export const optimizeCV = async (
     }
 
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
+      model: "gemini-3-flash-preview", // Sử dụng Flash để tránh timeout trên Vercel Hobby (10s)
       contents: { parts },
       config: {
         responseMimeType: "application/json",
         responseSchema: CV_OPTIMIZER_SCHEMA,
-        thinkingConfig: { thinkingBudget: 2000 }
+        thinkingConfig: { thinkingBudget: 0 } // Tắt thinking để phản hồi cực nhanh
       },
     });
 
-    if (!response.text) throw new Error("AI không phản hồi");
+    if (!response.text) throw new Error("AI_NO_RESPONSE");
     return JSON.parse(response.text) as CVAnalysisResult;
   } catch (error: any) {
+    console.error("Gemini Service Error:", error);
     throw error;
   }
 };

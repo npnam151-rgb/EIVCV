@@ -51,7 +51,17 @@ const App: React.FC = () => {
       setStatus(AppStatus.COMPLETED);
     } catch (err: any) {
       console.error(err);
-      setError("Hệ thống không thể xử lý dữ liệu này. Hãy thử dán văn bản trực tiếp.");
+      let errorMsg = "Hệ thống không thể xử lý dữ liệu này. Hãy thử dán văn bản trực tiếp.";
+      
+      if (err.message === "API_KEY_MISSING") {
+        errorMsg = "Lỗi cấu hình: Thiếu API_KEY trên Vercel. Hãy kiểm tra Environment Variables trong Project Settings.";
+      } else if (err.message?.includes('timeout')) {
+        errorMsg = "Lỗi: Thời gian xử lý quá lâu (Timeout). Hãy thử dán văn bản ngắn gọn hơn.";
+      } else if (err.message?.includes('fetch')) {
+        errorMsg = "Lỗi kết nối: Không thể gọi đến API Gemini. Kiểm tra lại mạng hoặc API Key.";
+      }
+      
+      setError(errorMsg);
       setStatus(AppStatus.ERROR);
     }
   }, []);
@@ -68,8 +78,8 @@ const App: React.FC = () => {
       
       <main className="flex-grow container mx-auto px-4 py-12 max-w-7xl print:max-w-none print:p-0">
         {error && (
-          <div className="mb-8 p-6 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-xl shadow-sm">
-            <h3 className="font-black uppercase tracking-tight mb-1">Yêu cầu dữ liệu</h3>
+          <div className="mb-8 p-6 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-xl shadow-sm animate-in fade-in duration-300">
+            <h3 className="font-black uppercase tracking-tight mb-1 text-red-800">Thông báo lỗi</h3>
             <p className="text-sm font-medium">{error}</p>
           </div>
         )}
@@ -93,7 +103,7 @@ const App: React.FC = () => {
         ) : status === AppStatus.COMPLETED && result ? (
           <div className="animate-in slide-in-from-bottom-8 duration-700">
             <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4 print:hidden">
-              <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">XỬ LÝ HOÀN TẤT</h2>
+              <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">XỬ LÝ HOÀT TẤT</h2>
               <button onClick={handleReset} className="px-8 py-3 bg-white text-slate-700 border-2 border-slate-200 rounded-2xl font-black text-sm uppercase tracking-widest hover:border-[#F26522] transition-all">Sửa ứng viên mới</button>
             </div>
             <ResultDisplay result={result} />
