@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { CVAnalysisResult } from '../types';
 
@@ -46,32 +47,46 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
     const pages: any[] = [];
     let currentExpList: any[] = [];
     
-    // Tăng các giới hạn để tận dụng tối đa chiều cao trang A4
-    const UNIT_LIMIT_PAGE_1 = 185; // Trang 1 có Header và Education nên giới hạn thấp hơn trang sau một chút
-    const UNIT_LIMIT_OTHER = 220;  // Các trang sau chỉ có Experience nên chứa được nhiều hơn
+    // Tăng giới hạn trang 1 để dồn được nhiều hơn
+    const UNIT_LIMIT_PAGE_1 = 210; 
+    const UNIT_LIMIT_OTHER = 230;  
     
-    const WEIGHT_EXP_HEADER = 12;   // Trọng số cho tiêu đề công ty/vị trí
-    const WEIGHT_BULLET = 5;        // Trọng số cho mỗi dòng mô tả
-    const WEIGHT_EDUCATION = 40;    // Trọng số cho phần học vấn
+    const WEIGHT_EXP_HEADER = 12;   
+    const WEIGHT_LINE_UNIT = 5.0;   // Giảm nhẹ trọng số dòng để sát thực tế hơn
+    const WEIGHT_EDUCATION_HEADER = 20;
 
-    let currentWeight = WEIGHT_EDUCATION; 
+    let educationWeight = WEIGHT_EDUCATION_HEADER + (result.education.length * 5);
+    let currentWeight = educationWeight; 
     let isFirstPage = true;
 
     result.experience.forEach((exp, idx) => {
-      const expWeight = WEIGHT_EXP_HEADER + (exp.points.length * WEIGHT_BULLET);
+      const pointsWeight = exp.points.reduce((acc, point) => {
+        const estimatedLines = Math.ceil(point.length / 70) || 1;
+        return acc + (estimatedLines * WEIGHT_LINE_UNIT);
+      }, 0);
+
+      const expWeight = WEIGHT_EXP_HEADER + pointsWeight;
       const limit = isFirstPage ? UNIT_LIMIT_PAGE_1 : UNIT_LIMIT_OTHER;
 
-      // Nếu thêm kinh nghiệm này vào sẽ vượt quá giới hạn trang
-      if (currentWeight + expWeight > limit && currentExpList.length > 0) {
-        pages.push({
-          isFirst: isFirstPage,
-          experience: currentExpList,
-          showEducation: isFirstPage
-        });
-        
-        currentExpList = [{ ...exp, originalIdx: idx }];
-        currentWeight = expWeight;
-        isFirstPage = false;
+      // Thuật toán: Nếu thêm vào vượt quá giới hạn nhưng chỉ vượt một chút (dung sai 15 đơn vị)
+      // thì vẫn cố dồn vào trang hiện tại để tối ưu diện tích.
+      const tolerance = 15;
+
+      if (currentWeight + expWeight > limit + (currentExpList.length > 0 ? 0 : tolerance)) {
+        if (currentExpList.length > 0) {
+          pages.push({
+            isFirst: isFirstPage,
+            experience: currentExpList,
+            showEducation: isFirstPage
+          });
+          
+          currentExpList = [{ ...exp, originalIdx: idx }];
+          currentWeight = expWeight;
+          isFirstPage = false;
+        } else {
+          currentExpList.push({ ...exp, originalIdx: idx });
+          currentWeight += expWeight;
+        }
       } else {
         currentExpList.push({ ...exp, originalIdx: idx });
         currentWeight += expWeight;
@@ -101,7 +116,6 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
     className?: string
   }) => {
     if (!isEditable) return <span className={className}>{value}</span>;
-
     return (
       <span
         contentEditable
@@ -124,7 +138,6 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
     className?: string 
   }) => {
     if (!isEditable) return <span className={className}>{value}</span>;
-
     return (
       <span
         contentEditable

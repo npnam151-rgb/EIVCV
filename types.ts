@@ -20,8 +20,8 @@ export interface CVAnalysisResult {
   suggestedKeywords: string[];
   missingSkills: string[];
   strengths: string[];
-  photoUrl?: string; // Candidate photo
-  companyLogoUrl?: string; // Custom company logo provided by user
+  photoUrl?: string;
+  companyLogoUrl?: string;
 }
 
 export enum AppStatus {

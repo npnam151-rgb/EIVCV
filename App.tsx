@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { optimizeCV, FileData } from './services/geminiService';
 import { AppStatus, CVAnalysisResult } from './types';
@@ -6,16 +7,27 @@ import CVInputForm from './components/CVInputForm';
 import ResultDisplay from './components/ResultDisplay';
 import LoadingOverlay from './components/LoadingOverlay';
 
+interface FileInfo {
+  name: string;
+  base64: string;
+  mimeType: string;
+}
+
 const App: React.FC = () => {
   const [status, setStatus] = useState<AppStatus>(AppStatus.IDLE);
   const [result, setResult] = useState<CVAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleProcess = useCallback(async (
-    cvInput: string | { base64: string; mimeType: string },
-    jdInput: string | { base64: string; mimeType: string },
-    photoBase64: string | null
+    cvInput: string | FileInfo,
+    jdInput: string | FileInfo,
+    photoInput: FileInfo | null
   ) => {
+    if (!photoInput) {
+      setError("Bạn bắt buộc phải tải lên hoặc dán ảnh chân dung của ứng viên.");
+      return;
+    }
+
     setStatus(AppStatus.PROCESSING);
     setError(null);
 
@@ -30,15 +42,16 @@ const App: React.FC = () => {
 
       const analysisResult = await optimizeCV(cvData, jdData);
       
-      const resultWithAssets = {
+      const finalPhotoUrl = `data:${photoInput.mimeType};base64,${photoInput.base64}`;
+
+      setResult({
         ...analysisResult,
-        photoUrl: photoBase64 || undefined
-      };
-      setResult(resultWithAssets);
+        photoUrl: finalPhotoUrl
+      });
       setStatus(AppStatus.COMPLETED);
     } catch (err: any) {
       console.error(err);
-      setError("Đã có lỗi xảy ra. Hãy đảm bảo file bạn tải lên không quá nặng và có nội dung rõ ràng.");
+      setError("Hệ thống không thể xử lý dữ liệu này. Hãy thử dán văn bản trực tiếp.");
       setStatus(AppStatus.ERROR);
     }
   }, []);
@@ -55,24 +68,24 @@ const App: React.FC = () => {
       
       <main className="flex-grow container mx-auto px-4 py-12 max-w-7xl print:max-w-none print:p-0">
         {error && (
-          <div className="mb-8 p-6 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-xl shadow-sm animate-in slide-in-from-top-4">
-            <h3 className="font-black uppercase tracking-tight mb-1">Xử lý thất bại</h3>
+          <div className="mb-8 p-6 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-xl shadow-sm">
+            <h3 className="font-black uppercase tracking-tight mb-1">Yêu cầu dữ liệu</h3>
             <p className="text-sm font-medium">{error}</p>
           </div>
         )}
 
         {status === AppStatus.IDLE || status === AppStatus.ERROR ? (
-          <div className="space-y-12 animate-in fade-in duration-700">
+          <div className="space-y-12">
             <section className="text-center max-w-4xl mx-auto">
               <div className="inline-block px-4 py-1.5 bg-[#F26522]/10 text-[#F26522] rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-6 border border-[#F26522]/20">
-                Internal Recruitment Tool
+                EIV AI CV Tailor
               </div>
               <h2 className="text-4xl font-black tracking-tight text-slate-900 sm:text-6xl mb-6 uppercase italic">
-                SỬA CV <span className="text-[#F26522] not-italic">THEO MẪU CHUẨN</span>
+                SỬA CV <span className="text-[#F26522] not-italic">SIÊU TỐC</span>
               </h2>
               <p className="text-xl text-slate-500 leading-relaxed font-medium">
-                Tải lên file CV của giáo viên và JD công việc. Hệ thống sẽ tự động trích xuất, 
-                tối ưu nội dung và điền vào mẫu chuẩn của EIV trong tích tắc.
+                Dán text, thả file, và <span className="text-[#F26522]">BẮT BUỘC up/dán ảnh chân dung</span>. 
+                Hệ thống sẽ tự động tối ưu hóa nội dung giáo viên theo JD.
               </p>
             </section>
             <CVInputForm onProcess={handleProcess} />
@@ -80,19 +93,8 @@ const App: React.FC = () => {
         ) : status === AppStatus.COMPLETED && result ? (
           <div className="animate-in slide-in-from-bottom-8 duration-700">
             <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4 print:hidden">
-              <div>
-                <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">XỬ LÝ HOÀN TẤT</h2>
-                <p className="text-slate-500 font-medium italic">Vui lòng kiểm tra kỹ thông tin trước khi xuất PDF</p>
-              </div>
-              <button 
-                onClick={handleReset}
-                className="group flex items-center space-x-2 px-8 py-3 bg-white text-slate-700 border-2 border-slate-200 rounded-2xl font-black text-sm uppercase tracking-widest hover:border-[#F26522] hover:text-[#F26522] transition-all"
-              >
-                <svg className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                <span>Sửa ứng viên mới</span>
-              </button>
+              <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">XỬ LÝ HOÀN TẤT</h2>
+              <button onClick={handleReset} className="px-8 py-3 bg-white text-slate-700 border-2 border-slate-200 rounded-2xl font-black text-sm uppercase tracking-widest hover:border-[#F26522] transition-all">Sửa ứng viên mới</button>
             </div>
             <ResultDisplay result={result} />
           </div>
@@ -100,17 +102,6 @@ const App: React.FC = () => {
       </main>
 
       {status === AppStatus.PROCESSING && <LoadingOverlay />}
-
-      <footer className="bg-white border-t border-slate-200 py-12 text-center print:hidden">
-        <div className="flex flex-col items-center justify-center space-y-4 mb-6">
-           <img 
-             src="https://eiv.edu.vn/wp-content/uploads/2024/04/logo-web2.png" 
-             alt="EIV Logo" 
-             className="h-12 w-auto object-contain"
-           />
-        </div>
-        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest italic">© 2025 Nam Nguyen · Powered by Gemini</p>
-      </footer>
     </div>
   );
 };
