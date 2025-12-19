@@ -266,7 +266,7 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
                     </div>
                     <ul className="pl-6 space-y-1.5">
                       {exp.points.map((point: string, pIdx: number) => (
-                        <li key={pIdx} className="text-[12px] list-disc pl-1 leading-relaxed text-slate-700 font-medium">
+                        <li key={pIdx} className="text-[12px] list-disc pl-1 leading-relaxed text-slate-700 font-medium text-justify">
                           <EditableMainText value={point} onBlur={(v) => handleExperienceChange(originalIdx, 'points', v, pIdx)} />
                         </li>
                       ))}
