@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { CVAnalysisResult } from '../types';
 import EIVTemplate from './EIVTemplate';
@@ -10,10 +11,10 @@ interface ResultDisplayProps {
 
 const ResultDisplay: React.FC<ResultDisplayProps> = ({ result }) => {
   const [viewMode, setViewMode] = useState<'template' | 'markdown'>('template');
-  // Mặc định cho phép chỉnh sửa trực tiếp ngay khi vào trang kết quả
   const [isEditable, setIsEditable] = useState(true);
   const [localResult, setLocalResult] = useState<CVAnalysisResult>(result);
   const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [showScoreInfo, setShowScoreInfo] = useState(false);
 
   useEffect(() => {
     setLocalResult(result);
@@ -34,11 +35,9 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result }) => {
     if (!container) return;
 
     setIsExportingPDF(true);
-    // Tạm thời tắt chế độ chỉnh sửa để xóa các đường gạch chân dashed và focus UI khi chụp ảnh canvas
     setIsEditable(false);
 
     try {
-      // Chờ một chút để React re-render giao diện sạch (không có UI chỉnh sửa)
       await new Promise(resolve => setTimeout(resolve, 600));
 
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -66,7 +65,6 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result }) => {
       alert('Có lỗi xảy ra khi xuất PDF. Vui lòng kiểm tra kết nối mạng và thử lại.');
     } finally {
       setIsExportingPDF(false);
-      // Bật lại chế độ chỉnh sửa sau khi xuất xong
       setIsEditable(true);
     }
   };
@@ -75,15 +73,54 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result }) => {
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
       {/* Sidebar điều khiển */}
       <div className="space-y-6 lg:col-span-1 print:hidden">
-        <div className={`p-6 rounded-2xl border-2 flex flex-col items-center text-center ${getScoreColor(localResult.matchScore)} shadow-sm`}>
+        <div className={`p-6 rounded-2xl border-2 flex flex-col items-center text-center relative ${getScoreColor(localResult.matchScore)} shadow-sm`}>
+          <button 
+            onClick={() => setShowScoreInfo(!showScoreInfo)}
+            className="absolute top-3 right-3 p-1 rounded-full hover:bg-black/5 transition-colors"
+            title="Điểm ưu tiên EIV là gì?"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
           <span className="text-xs font-black uppercase tracking-widest mb-1 opacity-70">Điểm Ưu Tiên EIV</span>
           <span className="text-6xl font-black">{localResult.matchScore}%</span>
         </div>
 
+        {/* Phần giải thích Điểm Ưu Tiên EIV */}
+        {showScoreInfo && (
+          <div className="bg-[#F26522] text-white p-5 rounded-2xl shadow-xl animate-in zoom-in-95 duration-200">
+            <h4 className="font-black text-sm uppercase tracking-tight mb-3 flex justify-between items-center">
+              <span>Điểm ưu tiên EIV là gì?</span>
+              <button onClick={() => setShowScoreInfo(false)} className="text-white/60 hover:text-white">✕</button>
+            </h4>
+            <div className="space-y-3 text-[11px] leading-relaxed">
+              <p>Là chỉ số thông minh được AI phân tích dựa trên sự so khớp giữa CV và JD:</p>
+              <ul className="space-y-2 list-none font-medium">
+                <li className="flex gap-2">
+                  <span className="opacity-50">01.</span>
+                  <span><strong>Mức độ phù hợp:</strong> Đánh giá kỹ năng, bằng cấp (TESOL, CELTA) và kinh nghiệm giảng dạy.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="opacity-50">02.</span>
+                  <span><strong>Tiêu chuẩn EIV:</strong> Đánh giá theo tiêu chí tuyển dụng ESL chuyên biệt và quản lý lớp học.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="opacity-50">03.</span>
+                  <span><strong>Tối ưu từ khóa:</strong> Kiểm tra các từ khóa quan trọng cho hệ thống ATS.</span>
+                </li>
+              </ul>
+              <div className="pt-2 border-t border-white/20 mt-2 italic opacity-90">
+                <p>● 80-100%: Cực kỳ tiềm năng.</p>
+                <p>● 50-79%: Cần chỉnh sửa thêm.</p>
+                <p>● &lt;50%: Ít tương quan.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
           <div className="flex flex-col gap-3">
-             {/* Đã loại bỏ nút "CHỈNH SỬA NỘI DUNG" theo yêu cầu người dùng */}
-             
              <button 
               onClick={handleExportPDF}
               disabled={isExportingPDF}
