@@ -102,7 +102,7 @@ export const processHeadshot = async (photoData: FileData): Promise<string> => {
     
     if (parts) {
       for (const part of parts) {
-        if (part.inlineData) {
+        if (part.inlineData && part.inlineData.data) {
           base64Result = part.inlineData.data;
           break;
         }
