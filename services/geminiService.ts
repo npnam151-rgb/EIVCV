@@ -76,6 +76,7 @@ export const processHeadshot = async (photoData: FileData): Promise<string> => {
 
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
+    // Cast config to any to avoid TS errors with preview features like imageConfig in some SDK versions
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: {
@@ -92,14 +93,19 @@ export const processHeadshot = async (photoData: FileData): Promise<string> => {
         imageConfig: {
           aspectRatio: "3:4"
         }
-      }
+      } as any 
     });
 
     let base64Result = "";
-    for (const part of response.candidates[0].content.parts) {
-      if (part.inlineData) {
-        base64Result = part.inlineData.data;
-        break;
+    // Safe access to candidates and parts to prevent build/runtime errors
+    const parts = response.candidates?.[0]?.content?.parts;
+    
+    if (parts) {
+      for (const part of parts) {
+        if (part.inlineData) {
+          base64Result = part.inlineData.data;
+          break;
+        }
       }
     }
 
@@ -145,6 +151,8 @@ export const optimizeCV = async (
       parts.push({ text: `CANDIDATE CV CONTENT:\n${cvData}` });
     } else {
       parts.push({ text: "CANDIDATE CV FILE:" });
+      // When pushing file data, ensure it matches the Part interface structure if needed, 
+      // but the SDK usually handles the object with inlineData correctly.
       parts.push(cvData);
     }
 
