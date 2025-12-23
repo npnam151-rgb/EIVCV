@@ -47,8 +47,9 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
     const pages: any[] = [];
     let currentExpList: any[] = [];
     
-    const UNIT_LIMIT_PAGE_1 = 210; 
-    const UNIT_LIMIT_OTHER = 230;  
+    // Limits adjusted for the new 20mm bottom padding
+    const UNIT_LIMIT_PAGE_1 = 200; 
+    const UNIT_LIMIT_OTHER = 220;  
     
     const WEIGHT_EXP_HEADER = 12;   
     const WEIGHT_LINE_UNIT = 5.0;   
@@ -147,7 +148,7 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
   };
 
   const Sidebar = () => (
-    <div className="w-[35%] bg-[#F26522] text-white p-8 flex flex-col h-full shrink-0" style={helveticaFont}>
+    <div className="w-[35%] bg-[#F26522] text-white px-8 pt-8 pb-[20mm] flex flex-col h-full shrink-0" style={helveticaFont}>
       <div className="mb-8 overflow-hidden rounded-none border-[3px] border-white shadow-lg bg-white relative w-full aspect-[3/4]">
         {result.photoUrl ? (
           <div 
@@ -219,7 +220,7 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
         <div key={pIdx} className="a4-page shadow-2xl flex print:shadow-none mb-8 last:mb-0 shrink-0 overflow-hidden">
           <Sidebar />
 
-          <div className="w-[65%] p-10 pt-12 flex flex-col relative h-full bg-white">
+          <div className="w-[65%] px-10 pt-12 pb-[20mm] flex flex-col relative h-full bg-white">
             <div className="absolute top-8 right-8 w-32 h-auto">
               <img 
                 src={LOGO_URL} 
