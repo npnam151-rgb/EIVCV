@@ -47,12 +47,11 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
     const pages: any[] = [];
     let currentExpList: any[] = [];
     
-    // Tăng giới hạn trang 1 để dồn được nhiều hơn
     const UNIT_LIMIT_PAGE_1 = 210; 
     const UNIT_LIMIT_OTHER = 230;  
     
     const WEIGHT_EXP_HEADER = 12;   
-    const WEIGHT_LINE_UNIT = 5.0;   // Giảm nhẹ trọng số dòng để sát thực tế hơn
+    const WEIGHT_LINE_UNIT = 5.0;   
     const WEIGHT_EDUCATION_HEADER = 20;
 
     let educationWeight = WEIGHT_EDUCATION_HEADER + (result.education.length * 5);
@@ -67,9 +66,6 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
 
       const expWeight = WEIGHT_EXP_HEADER + pointsWeight;
       const limit = isFirstPage ? UNIT_LIMIT_PAGE_1 : UNIT_LIMIT_OTHER;
-
-      // Thuật toán: Nếu thêm vào vượt quá giới hạn nhưng chỉ vượt một chút (dung sai 15 đơn vị)
-      // thì vẫn cố dồn vào trang hiện tại để tối ưu diện tích.
       const tolerance = 15;
 
       if (currentWeight + expWeight > limit + (currentExpList.length > 0 ? 0 : tolerance)) {
@@ -154,10 +150,14 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
     <div className="w-[35%] bg-[#F26522] text-white p-8 flex flex-col h-full shrink-0" style={helveticaFont}>
       <div className="mb-8 overflow-hidden rounded-none border-[3px] border-white shadow-lg bg-white relative w-full aspect-[3/4]">
         {result.photoUrl ? (
-          <img 
-            src={result.photoUrl} 
-            alt="Teacher" 
-            className="absolute inset-0 w-full h-full object-cover" 
+          <div 
+            style={{ 
+              backgroundImage: `url(${result.photoUrl})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat'
+            }}
+            className="absolute inset-0 w-full h-full"
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-slate-100">

@@ -68,6 +68,52 @@ export interface FileData {
   };
 }
 
+export const processHeadshot = async (photoData: FileData): Promise<string> => {
+  try {
+    if (!process.env.API_KEY) {
+      throw new Error("API_KEY_MISSING");
+    }
+
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: {
+        parts: [
+          {
+            inlineData: photoData.inlineData,
+          },
+          {
+            text: 'Crop this photo to create a professional headshot for a teacher CV. Focus on the face and upper shoulders, and center the subject perfectly. KEEP THE ORIGINAL BACKGROUND. Do not change, modify or replace the original background. The output must be exactly in a 3:4 vertical aspect ratio.',
+          },
+        ],
+      },
+      config: {
+        imageConfig: {
+          aspectRatio: "3:4"
+        }
+      }
+    });
+
+    let base64Result = "";
+    for (const part of response.candidates[0].content.parts) {
+      if (part.inlineData) {
+        base64Result = part.inlineData.data;
+        break;
+      }
+    }
+
+    if (!base64Result) {
+      return photoData.inlineData.data;
+    }
+
+    return base64Result;
+  } catch (error) {
+    console.error("Headshot Processing Error:", error);
+    return photoData.inlineData.data;
+  }
+};
+
 export const optimizeCV = async (
   cvData: string | FileData, 
   jdData: string | FileData
@@ -103,7 +149,6 @@ export const optimizeCV = async (
     }
 
     if (typeof jdData === 'string') {
-      // Fixed typo: changed jdText to jdData
       parts.push({ text: `JOB DESCRIPTION (JD) CONTENT:\n${jdData}` });
     } else {
       parts.push({ text: "JOB DESCRIPTION (JD) FILE:" });
@@ -111,12 +156,12 @@ export const optimizeCV = async (
     }
 
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview", // Sử dụng Flash để tránh timeout trên Vercel Hobby (10s)
+      model: "gemini-3-flash-preview",
       contents: { parts },
       config: {
         responseMimeType: "application/json",
         responseSchema: CV_OPTIMIZER_SCHEMA,
-        thinkingConfig: { thinkingBudget: 0 } // Tắt thinking để phản hồi cực nhanh
+        thinkingConfig: { thinkingBudget: 0 }
       },
     });
 

@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback } from 'react';
-import { optimizeCV, FileData } from './services/geminiService';
+import { optimizeCV, processHeadshot, FileData } from './services/geminiService';
 import { AppStatus, CVAnalysisResult } from './types';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -33,6 +33,13 @@ const App: React.FC = () => {
     setError(null);
 
     try {
+      // 1. Xử lý ảnh chân dung trước
+      const photoData: FileData = { 
+        inlineData: { data: photoInput.base64, mimeType: photoInput.mimeType } 
+      };
+      const processedPhotoBase64 = await processHeadshot(photoData);
+
+      // 2. Chuẩn bị dữ liệu CV và JD
       const cvData = typeof cvInput === 'string' 
         ? cvInput 
         : { inlineData: { data: cvInput.base64, mimeType: cvInput.mimeType } } as FileData;
@@ -41,9 +48,10 @@ const App: React.FC = () => {
         ? jdInput 
         : { inlineData: { data: jdInput.base64, mimeType: jdInput.mimeType } } as FileData;
 
+      // 3. Tối ưu hóa CV
       const analysisResult = await optimizeCV(cvData, jdData);
       
-      const finalPhotoUrl = `data:${photoInput.mimeType};base64,${photoInput.base64}`;
+      const finalPhotoUrl = `data:image/png;base64,${processedPhotoBase64}`;
 
       setResult({
         ...analysisResult,

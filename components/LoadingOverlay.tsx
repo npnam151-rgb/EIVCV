@@ -4,11 +4,12 @@ import React, { useState, useEffect } from 'react';
 const LoadingOverlay: React.FC = () => {
   const [messageIndex, setMessageIndex] = useState(0);
   const messages = [
-    "Đang phân tích kỹ năng của bạn...",
+    "Đang xử lý ảnh chân dung AI (Headshot)...",
+    "Đang phân tích kỹ năng của ứng viên...",
     "Đang so khớp với yêu cầu nhà tuyển dụng...",
     "Tìm kiếm từ khóa phù hợp (ATS)...",
-    "Sắp xếp lại các thành tựu của bạn...",
-    "Đang hoàn tất bản thảo tối ưu nhất..."
+    "Sắp xếp lại các thành tựu của giáo viên...",
+    "Đang hoàn tất bản CV tối ưu nhất cho EIV..."
   ];
 
   useEffect(() => {
