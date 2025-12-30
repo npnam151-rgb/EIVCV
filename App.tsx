@@ -1,5 +1,6 @@
 
 import React, { useState, useCallback } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { optimizeCV, processHeadshot, FileData } from './services/geminiService';
 import { AppStatus, CVAnalysisResult } from './types';
 import Header from './components/Header';
@@ -122,6 +123,7 @@ const App: React.FC = () => {
 
       {status === AppStatus.PROCESSING && <LoadingOverlay />}
       <Footer />
+      <Analytics />
     </div>
   );
 };
