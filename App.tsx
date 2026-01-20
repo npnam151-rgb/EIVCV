@@ -22,7 +22,8 @@ const App: React.FC = () => {
   const handleProcess = useCallback(async (
     cvInput: string | FileInfo,
     jdInput: string | FileInfo,
-    photoInput: FileInfo | null
+    photoInput: FileInfo | null,
+    additionalInfo: string
   ) => {
     if (!photoInput) {
       setError("Bạn bắt buộc phải tải lên hoặc dán ảnh chân dung của ứng viên.");
@@ -48,8 +49,8 @@ const App: React.FC = () => {
         ? jdInput 
         : { inlineData: { data: jdInput.base64, mimeType: jdInput.mimeType } } as FileData;
 
-      // 3. Tối ưu hóa CV
-      const analysisResult = await optimizeCV(cvData, jdData);
+      // 3. Tối ưu hóa CV với thông tin bổ sung
+      const analysisResult = await optimizeCV(cvData, jdData, additionalInfo);
       
       const finalPhotoUrl = `data:image/png;base64,${processedPhotoBase64}`;
 

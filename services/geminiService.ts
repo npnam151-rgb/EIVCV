@@ -122,7 +122,8 @@ export const processHeadshot = async (photoData: FileData): Promise<string> => {
 
 export const optimizeCV = async (
   cvData: string | FileData, 
-  jdData: string | FileData
+  jdData: string | FileData,
+  additionalInfo?: string
 ): Promise<CVAnalysisResult> => {
   try {
     if (!process.env.API_KEY) {
@@ -138,7 +139,7 @@ export const optimizeCV = async (
         1. Trích xuất và tối ưu hóa CV giáo viên theo chuẩn EIV.
         2. Tối ưu hóa thuật ngữ ESL chuyên ngành.
         
-        QUY TẮC DÀN TRANG THEO SỐ LƯỢ lượng KINH NGHIỆM (QUAN TRỌNG NHẤT):
+        QUY TẮC DÀN TRANG THEO SỐ LƯỢNG KINH NGHIỆM (QUAN TRỌNG NHẤT):
         - Nếu ứng viên có ≤ 4 mục kinh nghiệm: BẮT BUỘC viết chi tiết (mỗi mục 4-6 bullet points) để dồn toàn bộ vào 1 trang A4 thật đầy đặn và chuyên nghiệp.
         - Nếu ứng viên có > 4 mục kinh nghiệm: Hãy chọn lọc những mục quan trọng nhất, và chuẩn bị để nội dung dàn sang trang thứ 2 (mục thứ 5 trở đi sẽ nằm ở trang 2).
         - Tuyệt đối không để trang 2 chỉ có vài dòng lẻ loi. Nếu có mục thứ 5, hãy viết đủ dài để trang 2 chiếm ít nhất 1/2 diện tích.
@@ -146,6 +147,13 @@ export const optimizeCV = async (
         Mục tiêu: Tạo ra bản CV cân đối về mặt thị giác dựa trên số lượng đầu mục kinh nghiệm.`
       }
     ];
+
+    if (additionalInfo && additionalInfo.trim() !== '') {
+      parts.push({ 
+        text: `ADDITIONAL CANDIDATE INFORMATION (Use this to supplement the CV content, fill in missing gaps, or emphasize specific skills):
+        ${additionalInfo}` 
+      });
+    }
 
     if (typeof cvData === 'string') {
       parts.push({ text: `CANDIDATE CV CONTENT:\n${cvData}` });

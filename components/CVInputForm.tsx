@@ -11,7 +11,8 @@ interface CVInputFormProps {
   onProcess: (
     cvContent: string | FileInfo, 
     jdContent: string | FileInfo, 
-    photoContent: FileInfo | null
+    photoContent: FileInfo | null,
+    additionalInfo: string
   ) => void;
 }
 
@@ -33,6 +34,7 @@ const CVInputForm: React.FC<CVInputFormProps> = ({ onProcess }) => {
   const [jdFile, setJdFile] = useState<FileInfo | null>(null);
   const [jdText, setJdText] = useState('');
   const [photoFile, setPhotoFile] = useState<FileInfo | null>(null);
+  const [additionalInfo, setAdditionalInfo] = useState('');
   
   const [isDraggingCv, setIsDraggingCv] = useState(false);
   const [isDraggingJd, setIsDraggingJd] = useState(false);
@@ -114,7 +116,7 @@ const CVInputForm: React.FC<CVInputFormProps> = ({ onProcess }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isFormValid) {
-      onProcess(cvFile || cvText, jdFile || jdText, photoFile);
+      onProcess(cvFile || cvText, jdFile || jdText, photoFile, additionalInfo);
     }
   };
 
@@ -187,6 +189,20 @@ const CVInputForm: React.FC<CVInputFormProps> = ({ onProcess }) => {
             )}
             <input type="file" ref={jdInputRef} onChange={(e) => { const f = e.target.files?.[0]; if(f) processFile(f, 'jd'); }} className="hidden" />
           </div>
+        </div>
+
+        {/* ADDITIONAL INFO SECTION (NEW) */}
+        <div className="lg:col-span-2">
+           <label className="text-sm font-black uppercase tracking-tight text-slate-700 flex justify-between items-center mb-3">
+              <span>Thông tin bổ sung <span className="text-slate-400 font-medium normal-case tracking-normal ml-1">(Tùy chọn)</span></span>
+              <span className="text-[10px] text-[#F26522] font-bold bg-[#F26522]/10 px-2 py-0.5 rounded">Dùng khi CV gốc thiếu thông tin</span>
+           </label>
+           <textarea
+              value={additionalInfo}
+              onChange={(e) => setAdditionalInfo(e.target.value)}
+              placeholder="Nhập thêm thông tin không có trong CV (Ví dụ: Kinh nghiệm dạy online, chứng chỉ TESOL mới lấy, kỹ năng quản lý lớp học đặc biệt...)"
+              className="w-full h-[100px] p-5 text-sm bg-white border-2 border-slate-200 rounded-2xl shadow-sm focus:ring-2 focus:ring-[#F26522] focus:border-transparent resize-none transition-all"
+           />
         </div>
 
         {/* PHOTO SECTION */}
