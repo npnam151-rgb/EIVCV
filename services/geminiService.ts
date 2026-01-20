@@ -138,6 +138,7 @@ export const optimizeCV = async (
         NHIỆM VỤ:
         1. Trích xuất và tối ưu hóa CV giáo viên theo chuẩn EIV.
         2. Tối ưu hóa thuật ngữ ESL chuyên ngành.
+        3. TÍCH HỢP THÔNG TIN BỔ SUNG: Nếu người dùng cung cấp thêm thông tin (Additional Info), bạn BẮT BUỘC phải chèn nó vào phần phù hợp nhất (Kinh nghiệm, Học vấn, hoặc Thông tin cá nhân) trong kết quả đầu ra. TUYỆT ĐỐI KHÔNG ĐƯỢC BỎ QUA.
         
         QUY TẮC DÀN TRANG THEO SỐ LƯỢNG KINH NGHIỆM (QUAN TRỌNG NHẤT):
         - Nếu ứng viên có ≤ 4 mục kinh nghiệm: BẮT BUỘC viết chi tiết (mỗi mục 4-6 bullet points) để dồn toàn bộ vào 1 trang A4 thật đầy đặn và chuyên nghiệp.
@@ -150,8 +151,21 @@ export const optimizeCV = async (
 
     if (additionalInfo && additionalInfo.trim() !== '') {
       parts.push({ 
-        text: `ADDITIONAL CANDIDATE INFORMATION (Use this to supplement the CV content, fill in missing gaps, or emphasize specific skills):
-        ${additionalInfo}` 
+        text: `*** QUAN TRỌNG: THÔNG TIN BỔ SUNG TỪ NGƯỜI DÙNG ***
+        Đây là thông tin người dùng nhập tay bổ sung vì CV gốc bị thiếu.
+        BẮT BUỘC PHẢI HỢP NHẤT THÔNG TIN NÀY VÀO KẾT QUẢ ĐẦU RA (JSON).
+        
+        Nội dung bổ sung:
+        """
+        ${additionalInfo}
+        """
+        
+        HƯỚNG DẪN XỬ LÝ CỤ THỂ:
+        1. Nếu đây là Kinh nghiệm làm việc (Experience): Hãy TẠO MỘT MỤC MỚI trong mảng 'experience'. Nếu thiếu tên công ty hoặc chức danh, hãy suy luận hợp lý từ ngữ cảnh hoặc để "Freelance/Private Tutor".
+        2. Nếu đây là Bằng cấp/Chứng chỉ (Education): Thêm ngay vào mảng 'education'.
+        3. Nếu đây là thông tin cá nhân (Quốc tịch, Tên): Cập nhật ngay vào 'sidebarInfo'.
+        
+        HÃY ƯU TIÊN SỬ DỤNG THÔNG TIN NÀY ĐỂ LẤP ĐẦY CÁC KHOẢNG TRỐNG TRONG CV GỐC.` 
       });
     }
 
