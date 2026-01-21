@@ -1,5 +1,6 @@
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import mammoth from 'mammoth';
 
 interface FileInfo {
   name: string;
@@ -44,7 +45,30 @@ const CVInputForm: React.FC<CVInputFormProps> = ({ onProcess }) => {
   const jdInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
-  const processFile = useCallback((file: File, type: 'cv' | 'jd' | 'photo') => {
+  const processFile = useCallback(async (file: File, type: 'cv' | 'jd' | 'photo') => {
+    // 1. Xử lý file Word (.docx) - Trích xuất text
+    if ((type === 'cv' || type === 'jd') && file.name.toLowerCase().endsWith('.docx')) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        const extractedText = result.value;
+        
+        if (type === 'cv') {
+          setCvText(extractedText);
+          setCvFile(null); // Ưu tiên hiển thị dạng text để user có thể sửa
+        } else {
+          setJdText(extractedText);
+          setJdFile(null);
+        }
+        return;
+      } catch (error) {
+        console.error("Lỗi đọc file Word:", error);
+        alert("Không thể đọc file Word này. Hãy thử chuyển sang PDF hoặc copy text.");
+        return;
+      }
+    }
+
+    // 2. Xử lý các file khác (PDF, Ảnh)
     const reader = new FileReader();
     reader.onloadend = () => {
       const result = reader.result as string;
@@ -149,7 +173,7 @@ const CVInputForm: React.FC<CVInputFormProps> = ({ onProcess }) => {
               <textarea
                 value={cvText}
                 onChange={(e) => setCvText(e.target.value)}
-                placeholder="Dán nội dung CV hoặc kéo thả file vào đây..."
+                placeholder="Dán nội dung CV hoặc kéo thả file (PDF, DOCX) vào đây..."
                 className={`h-[250px] w-full p-5 text-sm bg-white border-2 rounded-2xl shadow-sm focus:ring-2 focus:ring-[#F26522] focus:border-transparent resize-none transition-all ${isDraggingCv ? 'border-[#F26522] bg-[#F26522]/5' : 'border-slate-200'}`}
               />
             )}
@@ -183,7 +207,7 @@ const CVInputForm: React.FC<CVInputFormProps> = ({ onProcess }) => {
               <textarea
                 value={jdText}
                 onChange={(e) => setJdText(e.target.value)}
-                placeholder="Dán nội dung JD hoặc kéo thả file vào đây..."
+                placeholder="Dán nội dung JD hoặc kéo thả file (PDF, DOCX) vào đây..."
                 className={`h-[250px] w-full p-5 text-sm bg-white border-2 rounded-2xl shadow-sm focus:ring-2 focus:ring-[#F26522] focus:border-transparent resize-none transition-all ${isDraggingJd ? 'border-[#F26522] bg-[#F26522]/5' : 'border-slate-200'}`}
               />
             )}
@@ -241,7 +265,7 @@ const CVInputForm: React.FC<CVInputFormProps> = ({ onProcess }) => {
                 <p className={`font-black uppercase tracking-tight text-xl transition-colors ${isDraggingPhoto ? 'text-[#F26522]' : 'text-slate-600 group-hover:text-[#F26522]'}`}>
                   {isDraggingPhoto ? 'Thả file ảnh vào đây' : 'Bắt buộc: Dán chân dung (CTRL+V) hoặc Nhấn để tải lên'}
                 </p>
-                <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest mt-2 bg-slate-100 px-4 py-1 rounded-full inline-block">Hỗ trợ PDF, JPG, PNG & Kéo thả trực tiếp</p>
+                <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest mt-2 bg-slate-100 px-4 py-1 rounded-full inline-block">Hỗ trợ PDF, DOCX, JPG, PNG & Kéo thả trực tiếp</p>
               </div>
             )}
             <input type="file" ref={photoInputRef} onChange={(e) => { const f = e.target.files?.[0]; if(f) processFile(f, 'photo'); }} accept="image/*" className="hidden" />

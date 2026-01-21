@@ -14,10 +14,12 @@
     "@vercel/analytics": "^1.6.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
+    "mammoth": "^1.7.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@types/mammoth": "^1.6.0",
     "@types/node": "^22.13.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
