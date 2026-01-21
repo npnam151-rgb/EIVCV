@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { CVAnalysisResult } from '../types';
 
 interface EIVTemplateProps {
@@ -7,6 +7,39 @@ interface EIVTemplateProps {
   isEditable?: boolean;
   onUpdate?: (updatedResult: CVAnalysisResult) => void;
 }
+
+// Configuration interface for customizable template text/elements
+interface TemplateConfig {
+  showLogo: boolean;
+  sidebarTitle: string;
+  introTitle: string;
+  introText1: string;
+  introText2: string;
+  hcmTitle: string;
+  hcmAdd: string;
+  hcmPhone: string;
+  hnTitle: string;
+  hnAdd: string;
+  hnPhone: string;
+  dnTitle: string;
+  dnAdd: string;
+}
+
+const DEFAULT_CONFIG: TemplateConfig = {
+  showLogo: true,
+  sidebarTitle: "Teacher from EIV",
+  introTitle: "What is EIV ?",
+  introText1: "EIV operates in recruiting, managing and supplying high quality Native English Teachers in Vietnam.",
+  introText2: "Our mission is to bring the international standard in English training to Vietnam with modern and effective study methodology.",
+  hcmTitle: "EIV – Ho Chi Minh",
+  hcmAdd: "Add: 179EF Cach Mang Thang 8, W5, D3.",
+  hcmPhone: "Phone: 028 7309 9959",
+  hnTitle: "EIV - Ha Noi",
+  hnAdd: "Add: F1, Platinum Residences, 6 Nguyen Cong Hoan, Ba Dinh.",
+  hnPhone: "Phone: 028 7309 9959",
+  dnTitle: "EIV - Da Nang",
+  dnAdd: "Add: F8, Cevimetal Building, 69 Quang Trung, Hai Chau."
+};
 
 const HELVETICA_FONT = { fontFamily: 'Helvetica, Arial, sans-serif' };
 const LOGO_URL = "https://res.cloudinary.com/dbfngei2f/image/upload/v1766125714/Logo-EIV-Chuan_yaeiyl.png";
@@ -17,12 +50,14 @@ const EditableText = ({
   value, 
   onBlur, 
   isEditable,
-  className = ""
+  className = "",
+  multiline = false
 }: { 
   value: string, 
   onBlur: (val: string) => void, 
   isEditable: boolean,
-  className?: string
+  className?: string,
+  multiline?: boolean
 }) => {
   if (!isEditable) return <span className={className}>{value}</span>;
   return (
@@ -30,7 +65,8 @@ const EditableText = ({
       contentEditable
       suppressContentEditableWarning
       onBlur={(e) => onBlur(e.currentTarget.textContent || "")}
-      className={`${className} outline-none border-b border-dashed border-white/40 bg-white/10 px-1 focus:bg-white/20 transition-colors inline-block min-w-[20px]`}
+      className={`${className} outline-none border-b border-dashed border-white/40 bg-white/10 px-1 focus:bg-white/20 transition-colors inline-block min-w-[20px] hover:bg-white/5 cursor-text`}
+      style={{ whiteSpace: multiline ? 'pre-wrap' : 'normal' }}
     >
       {value}
     </span>
@@ -54,7 +90,7 @@ const EditableMainText = ({
       contentEditable
       suppressContentEditableWarning
       onBlur={(e) => onBlur(e.currentTarget.textContent || "")}
-      className={`${className} outline-none border-b border-dashed border-[#F26522]/40 hover:bg-[#F26522]/5 focus:bg-[#F26522]/10 transition-colors px-1 inline-block min-w-[20px]`}
+      className={`${className} outline-none border-b border-dashed border-[#F26522]/40 hover:bg-[#F26522]/5 focus:bg-[#F26522]/10 transition-colors px-1 inline-block min-w-[20px] cursor-text`}
     >
       {value}
     </span>
@@ -64,11 +100,15 @@ const EditableMainText = ({
 const Sidebar = ({ 
   result, 
   isEditable, 
-  onUpdate 
+  onUpdate,
+  config,
+  onConfigChange
 }: { 
   result: CVAnalysisResult, 
   isEditable: boolean, 
-  onUpdate?: (res: CVAnalysisResult) => void 
+  onUpdate?: (res: CVAnalysisResult) => void,
+  config: TemplateConfig,
+  onConfigChange: (key: keyof TemplateConfig, value: any) => void
 }) => {
   
   const handleSidebarChange = (field: 'name' | 'nationality' | 'gender', value: string) => {
@@ -106,7 +146,11 @@ const Sidebar = ({
 
       <div className="mb-10 space-y-2">
         <h2 className="text-[18px] font-black leading-tight uppercase mb-4 tracking-tight border-b-2 border-white/30 pb-2">
-          Teacher from EIV
+          <EditableText 
+            value={config.sidebarTitle} 
+            onBlur={(v) => onConfigChange('sidebarTitle', v)}
+            isEditable={isEditable}
+          />
         </h2>
         <div className="space-y-2">
           <p className="text-[12px] font-medium leading-tight">
@@ -129,29 +173,66 @@ const Sidebar = ({
       </div>
 
       <div className="space-y-4 mb-10">
-        <h2 className="text-[18px] font-black uppercase tracking-tighter">What is EIV ?</h2>
+        <h2 className="text-[18px] font-black uppercase tracking-tighter">
+          <EditableText 
+            value={config.introTitle} 
+            onBlur={(v) => onConfigChange('introTitle', v)}
+            isEditable={isEditable}
+          />
+        </h2>
         <p className="text-[12px] leading-relaxed font-light">
-          EIV operates in recruiting, managing and supplying high quality Native English Teachers in Vietnam.
+          <EditableText 
+            value={config.introText1} 
+            onBlur={(v) => onConfigChange('introText1', v)}
+            isEditable={isEditable}
+            multiline={true}
+          />
         </p>
         <p className="text-[12px] leading-relaxed font-light">
-          Our mission is to bring the international standard in English training to Vietnam with modern and effective study methodology.
+          <EditableText 
+            value={config.introText2} 
+            onBlur={(v) => onConfigChange('introText2', v)}
+            isEditable={isEditable}
+            multiline={true}
+          />
         </p>
       </div>
 
       <div className="mt-auto space-y-4 text-[12px] leading-[1.3] font-light pt-6 border-t border-white/20">
+        {/* HCM Block */}
         <div>
-          <p className="font-black uppercase mb-0.5 text-[11px]">EIV – Ho Chi Minh</p>
-          <p className="text-[10px]">Add: 179EF Cach Mang Thang 8, W5, D3.</p>
-          <p className="text-[10px]">Phone: 028 7309 9959</p>
+          <p className="font-black uppercase mb-0.5 text-[11px]">
+            <EditableText value={config.hcmTitle} onBlur={(v) => onConfigChange('hcmTitle', v)} isEditable={isEditable} />
+          </p>
+          <p className="text-[10px]">
+            <EditableText value={config.hcmAdd} onBlur={(v) => onConfigChange('hcmAdd', v)} isEditable={isEditable} />
+          </p>
+          <p className="text-[10px]">
+            <EditableText value={config.hcmPhone} onBlur={(v) => onConfigChange('hcmPhone', v)} isEditable={isEditable} />
+          </p>
         </div>
+        
+        {/* HN Block */}
         <div>
-          <p className="font-black uppercase mb-0.5 text-[11px]">EIV - Ha Noi</p>
-          <p className="text-[10px]">Add: F1, Platinum Residences, 6 Nguyen Cong Hoan, Ba Dinh.</p>
-          <p className="text-[10px]">Phone: 028 7309 9959</p>
+          <p className="font-black uppercase mb-0.5 text-[11px]">
+            <EditableText value={config.hnTitle} onBlur={(v) => onConfigChange('hnTitle', v)} isEditable={isEditable} />
+          </p>
+          <p className="text-[10px]">
+             <EditableText value={config.hnAdd} onBlur={(v) => onConfigChange('hnAdd', v)} isEditable={isEditable} />
+          </p>
+          <p className="text-[10px]">
+             <EditableText value={config.hnPhone} onBlur={(v) => onConfigChange('hnPhone', v)} isEditable={isEditable} />
+          </p>
         </div>
+
+        {/* DN Block */}
         <div>
-          <p className="font-black uppercase mb-0.5 text-[11px]">EIV - Da Nang</p>
-          <p className="text-[10px]">Add: F8, Cevimetal Building, 69 Quang Trung, Hai Chau.</p>
+          <p className="font-black uppercase mb-0.5 text-[11px]">
+             <EditableText value={config.dnTitle} onBlur={(v) => onConfigChange('dnTitle', v)} isEditable={isEditable} />
+          </p>
+          <p className="text-[10px]">
+             <EditableText value={config.dnAdd} onBlur={(v) => onConfigChange('dnAdd', v)} isEditable={isEditable} />
+          </p>
         </div>
       </div>
     </div>
@@ -159,6 +240,16 @@ const Sidebar = ({
 };
 
 const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, onUpdate }) => {
+  // Local state for template configuration (static text & display options)
+  const [config, setConfig] = useState<TemplateConfig>(DEFAULT_CONFIG);
+
+  const handleConfigChange = (key: keyof TemplateConfig, value: any) => {
+    setConfig(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
   const handleSidebarChange = (field: 'name' | 'nationality' | 'gender', value: string) => {
     if (!onUpdate) return;
     onUpdate({
@@ -253,18 +344,37 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
   return (
     <div id="cv-pages-container" className="flex flex-col space-y-8 items-center bg-slate-200/20 p-8 print:p-0 print:space-y-0" style={HELVETICA_FONT}>
       {pages.map((page, pIdx) => (
-        <div key={pIdx} className="a4-page shadow-2xl flex print:shadow-none mb-8 last:mb-0 shrink-0 overflow-hidden">
+        <div key={pIdx} className="a4-page shadow-2xl flex print:shadow-none mb-8 last:mb-0 shrink-0 overflow-hidden group">
           
-          <Sidebar result={result} isEditable={isEditable} onUpdate={onUpdate} />
+          <Sidebar 
+            result={result} 
+            isEditable={isEditable} 
+            onUpdate={onUpdate}
+            config={config}
+            onConfigChange={handleConfigChange}
+          />
 
           <div className="w-[65%] px-10 pt-12 pb-[20mm] flex flex-col relative h-full bg-white">
-            <div className="absolute top-8 right-8 w-32 h-auto">
-              <img 
-                src={LOGO_URL} 
-                alt="EIV Logo" 
-                crossOrigin="anonymous"
-                className="w-full h-auto object-contain"
-              />
+            
+            {/* LOGO SECTION with Toggle Control */}
+            <div className="absolute top-8 right-8 w-32 h-auto group/logo">
+              {config.showLogo && (
+                <img 
+                  src={LOGO_URL} 
+                  alt="EIV Logo" 
+                  crossOrigin="anonymous"
+                  className="w-full h-auto object-contain"
+                />
+              )}
+              {isEditable && (
+                <button
+                  onClick={() => handleConfigChange('showLogo', !config.showLogo)}
+                  className={`absolute -top-3 -right-3 p-1.5 rounded-full shadow-md text-[10px] font-bold transition-all z-10 ${config.showLogo ? 'bg-red-100 text-red-600 hover:bg-red-200 opacity-0 group-hover/logo:opacity-100' : 'bg-green-100 text-green-600 hover:bg-green-200 opacity-100'}`}
+                  title={config.showLogo ? "Ẩn Logo" : "Hiện Logo"}
+                >
+                  {config.showLogo ? '✕' : '+ LOGO'}
+                </button>
+              )}
             </div>
 
             <div className="mb-10 mt-2 pr-32">
