@@ -7,14 +7,19 @@ import html2canvas from 'html2canvas';
 
 interface ResultDisplayProps {
   result: CVAnalysisResult;
+  onRefine?: (instruction: string) => void;
 }
 
-const ResultDisplay: React.FC<ResultDisplayProps> = ({ result }) => {
+const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onRefine }) => {
   const [viewMode, setViewMode] = useState<'template' | 'markdown'>('template');
   const [isEditable, setIsEditable] = useState(true);
   const [localResult, setLocalResult] = useState<CVAnalysisResult>(result);
   const [isExportingPDF, setIsExportingPDF] = useState(false);
   const [showScoreInfo, setShowScoreInfo] = useState(false);
+  
+  // Refine state
+  const [refineText, setRefineText] = useState('');
+  const [isRefineExpanded, setIsRefineExpanded] = useState(false);
 
   useEffect(() => {
     setLocalResult(result);
@@ -28,6 +33,14 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result }) => {
 
   const handleUpdate = (updatedResult: CVAnalysisResult) => {
     setLocalResult(updatedResult);
+  };
+
+  const handleSubmitRefine = () => {
+    if (onRefine && refineText.trim()) {
+      onRefine(refineText);
+      setRefineText('');
+      setIsRefineExpanded(false);
+    }
   };
 
   const handleExportPDF = async () => {
@@ -116,6 +129,41 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result }) => {
                 <p>● &lt;50%: Ít tương quan.</p>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* PANEL REFINE CV (NEW) */}
+        {onRefine && (
+          <div className="bg-white p-5 rounded-2xl border-2 border-indigo-100 shadow-sm transition-all">
+            <div 
+              className="flex justify-between items-center cursor-pointer mb-2"
+              onClick={() => setIsRefineExpanded(!isRefineExpanded)}
+            >
+              <h4 className="text-xs font-black text-indigo-900 uppercase tracking-widest flex items-center gap-2">
+                <span className="bg-indigo-100 p-1 rounded text-indigo-600">✨</span>
+                AI Refinement
+              </h4>
+              <span className="text-indigo-400 text-xs font-bold">{isRefineExpanded ? '−' : '+'}</span>
+            </div>
+            
+            <div className={`overflow-hidden transition-all duration-300 ${isRefineExpanded ? 'max-h-[300px] opacity-100 mt-3' : 'max-h-0 opacity-0'}`}>
+              <textarea
+                value={refineText}
+                onChange={(e) => setRefineText(e.target.value)}
+                placeholder="Ví dụ: Thêm kinh nghiệm làm tại VUS từ 2019-2020, đổi quốc tịch thành Anh, xóa kỹ năng Python..."
+                className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none bg-slate-50 min-h-[100px] mb-3"
+              />
+              <button
+                onClick={handleSubmitRefine}
+                disabled={!refineText.trim()}
+                className="w-full bg-indigo-600 text-white py-2 rounded-lg text-xs font-black uppercase tracking-wider hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Cập nhật CV
+              </button>
+            </div>
+             {!isRefineExpanded && (
+               <p className="text-[10px] text-slate-400 mt-1 pl-8">Nhấn để thêm thông tin hoặc chỉnh sửa lại bằng AI.</p>
+             )}
           </div>
         )}
 

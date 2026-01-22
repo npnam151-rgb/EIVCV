@@ -202,3 +202,56 @@ export const optimizeCV = async (
     throw error;
   }
 };
+
+export const refineCV = async (
+  currentResult: CVAnalysisResult,
+  instruction: string
+): Promise<CVAnalysisResult> => {
+  try {
+    if (!process.env.API_KEY) {
+      throw new Error("API_KEY_MISSING");
+    }
+
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
+    // Remove the photoUrl from the input JSON to save tokens and avoid confusion, 
+    // we will merge it back later.
+    const { photoUrl, ...cleanResult } = currentResult;
+
+    const parts = [
+      {
+        text: `Bạn là trợ lý AI chuyên chỉnh sửa CV. Dưới đây là dữ liệu CV hiện tại (định dạng JSON) và yêu cầu chỉnh sửa từ người dùng.
+        
+        NHIỆM VỤ:
+        1. Cập nhật JSON dựa trên yêu cầu của người dùng.
+        2. Giữ nguyên các thông tin không liên quan.
+        3. Đảm bảo cấu trúc JSON đầu ra KHÔNG thay đổi so với cấu trúc đầu vào.
+        4. Viết nội dung bằng Tiếng Anh (hoặc ngôn ngữ của CV gốc) một cách chuyên nghiệp.
+
+        DỮ LIỆU CV HIỆN TẠI (JSON):
+        ${JSON.stringify(cleanResult)}
+
+        YÊU CẦU CHỈNH SỬA CỦA NGƯỜI DÙNG:
+        "${instruction}"
+        `
+      }
+    ];
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: { parts },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: CV_OPTIMIZER_SCHEMA,
+        thinkingConfig: { thinkingBudget: 0 }
+      },
+    });
+
+    if (!response.text) throw new Error("AI_NO_RESPONSE");
+    return JSON.parse(response.text) as CVAnalysisResult;
+
+  } catch (error: any) {
+    console.error("Gemini Refine Error:", error);
+    throw error;
+  }
+};

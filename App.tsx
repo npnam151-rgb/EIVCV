@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback } from 'react';
-import { optimizeCV, processHeadshot, FileData } from './services/geminiService';
+import { optimizeCV, processHeadshot, refineCV, FileData } from './services/geminiService';
 import { AppStatus, CVAnalysisResult } from './types';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -76,6 +76,29 @@ const App: React.FC = () => {
     }
   }, []);
 
+  const handleRefine = useCallback(async (instruction: string) => {
+    if (!result) return;
+    
+    // Switch to processing state but maybe with a different UI indicator?
+    // For now, reusing PROCESSING covers the screen which is safe.
+    setStatus(AppStatus.PROCESSING);
+    
+    try {
+      const refinedResult = await refineCV(result, instruction);
+      
+      // Merge the preserved photoUrl back into the new result
+      setResult({
+        ...refinedResult,
+        photoUrl: result.photoUrl
+      });
+      setStatus(AppStatus.COMPLETED);
+    } catch (err: any) {
+      console.error(err);
+      setError("Không thể cập nhật CV. Vui lòng thử lại.");
+      setStatus(AppStatus.COMPLETED); // Return to view mode even if error, so user doesn't lose data
+    }
+  }, [result]);
+
   const handleReset = () => {
     setResult(null);
     setStatus(AppStatus.IDLE);
@@ -116,7 +139,7 @@ const App: React.FC = () => {
               <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">XỬ LÝ HOÀN TẤT</h2>
               <button onClick={handleReset} className="px-8 py-3 bg-white text-slate-700 border-2 border-slate-200 rounded-2xl font-black text-sm uppercase tracking-widest hover:border-[#F26522] transition-all">Sửa ứng viên mới</button>
             </div>
-            <ResultDisplay result={result} />
+            <ResultDisplay result={result} onRefine={handleRefine} />
           </div>
         ) : null}
       </main>
