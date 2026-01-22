@@ -68,6 +68,17 @@ export interface FileData {
   };
 }
 
+// Helper to clean Markdown code blocks from JSON string
+const cleanJsonString = (text: string): string => {
+  if (!text) return "{}";
+  let cleanText = text.trim();
+  // Remove markdown code blocks ```json ... ``` or ``` ... ```
+  if (cleanText.startsWith("```")) {
+    cleanText = cleanText.replace(/^```(json)?\n?/, "").replace(/\n?```$/, "");
+  }
+  return cleanText;
+};
+
 export const processHeadshot = async (photoData: FileData): Promise<string> => {
   try {
     if (!process.env.API_KEY) {
@@ -196,7 +207,11 @@ export const optimizeCV = async (
     });
 
     if (!response.text) throw new Error("AI_NO_RESPONSE");
-    return JSON.parse(response.text) as CVAnalysisResult;
+    
+    // Robust parsing
+    const cleanedText = cleanJsonString(response.text);
+    return JSON.parse(cleanedText) as CVAnalysisResult;
+
   } catch (error: any) {
     console.error("Gemini Service Error:", error);
     throw error;
@@ -248,7 +263,10 @@ export const refineCV = async (
     });
 
     if (!response.text) throw new Error("AI_NO_RESPONSE");
-    return JSON.parse(response.text) as CVAnalysisResult;
+
+    // Robust parsing
+    const cleanedText = cleanJsonString(response.text);
+    return JSON.parse(cleanedText) as CVAnalysisResult;
 
   } catch (error: any) {
     console.error("Gemini Refine Error:", error);

@@ -61,7 +61,7 @@ const App: React.FC = () => {
       setStatus(AppStatus.COMPLETED);
     } catch (err: any) {
       console.error(err);
-      let errorMsg = "Hệ thống không thể xử lý dữ liệu này. Hãy thử dán văn bản trực tiếp.";
+      let errorMsg = "Hệ thống không thể xử lý dữ liệu này.";
       
       if (err.message === "API_KEY_MISSING") {
         errorMsg = "Lỗi cấu hình: Thiếu API_KEY trên Vercel. Hãy kiểm tra Environment Variables trong Project Settings.";
@@ -69,6 +69,10 @@ const App: React.FC = () => {
         errorMsg = "Lỗi: Thời gian xử lý quá lâu (Timeout). Hãy thử dán văn bản ngắn gọn hơn.";
       } else if (err.message?.includes('fetch')) {
         errorMsg = "Lỗi kết nối: Không thể gọi đến API Gemini. Kiểm tra lại mạng hoặc API Key.";
+      } else if (err.message?.includes('JSON')) {
+        errorMsg = "Lỗi dữ liệu AI: Kết quả trả về không đúng định dạng JSON. Vui lòng thử lại.";
+      } else {
+         errorMsg = `Lỗi: ${err.message || 'Không xác định'}`;
       }
       
       setError(errorMsg);
@@ -94,7 +98,8 @@ const App: React.FC = () => {
       setStatus(AppStatus.COMPLETED);
     } catch (err: any) {
       console.error(err);
-      setError("Không thể cập nhật CV. Vui lòng thử lại.");
+      const specificError = err.message || "Không xác định";
+      setError(`Không thể cập nhật CV. Chi tiết lỗi: ${specificError}`);
       setStatus(AppStatus.COMPLETED); // Return to view mode even if error, so user doesn't lose data
     }
   }, [result]);
