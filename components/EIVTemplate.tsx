@@ -240,44 +240,51 @@ const Sidebar = ({
 };
 
 const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, onUpdate }) => {
-  // Local state for template configuration (static text & display options)
   const [config, setConfig] = useState<TemplateConfig>(DEFAULT_CONFIG);
 
   const handleConfigChange = (key: keyof TemplateConfig, value: any) => {
-    setConfig(prev => ({
-      ...prev,
-      [key]: value
-    }));
+    setConfig(prev => ({ ...prev, [key]: value }));
   };
 
   const handleSidebarChange = (field: 'name' | 'nationality' | 'gender', value: string) => {
     if (!onUpdate) return;
     onUpdate({
       ...result,
-      sidebarInfo: {
-        ...result.sidebarInfo,
-        [field]: value
-      }
+      sidebarInfo: { ...result.sidebarInfo, [field]: value }
     });
   };
 
+  // --- EDUCATION HANDLERS ---
   const handleEducationChange = (idx: number, value: string) => {
     if (!onUpdate) return;
     const newEdu = [...result.education];
     if (value.trim() === "") {
-        newEdu.splice(idx, 1); // Delete if empty
+        newEdu.splice(idx, 1);
     } else {
         newEdu[idx] = value;
     }
     onUpdate({ ...result, education: newEdu });
   };
 
+  const handleAddEducation = () => {
+    if (!onUpdate) return;
+    const newEdu = [...result.education, "New Degree/Certificate - Institution Name (Year)"];
+    onUpdate({ ...result, education: newEdu });
+  };
+
+  const handleDeleteEducation = (idx: number) => {
+    if (!onUpdate) return;
+    const newEdu = [...result.education];
+    newEdu.splice(idx, 1);
+    onUpdate({ ...result, education: newEdu });
+  };
+
+  // --- EXPERIENCE HANDLERS ---
   const handleExperienceChange = (expIdx: number, field: string, value: any, pointIdx?: number) => {
     if (!onUpdate) return;
     const newExp = [...result.experience];
     if (pointIdx !== undefined) {
       const newPoints = [...newExp[expIdx].points];
-      // Logic: Nếu giá trị trống (người dùng xóa hết chữ), xóa luôn dòng đó khỏi mảng
       if (typeof value === 'string' && value.trim() === '') {
         newPoints.splice(pointIdx, 1);
       } else {
@@ -290,48 +297,101 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
     onUpdate({ ...result, experience: newExp });
   };
 
+  const handleAddExperience = () => {
+    if (!onUpdate) return;
+    const newExpItem = {
+      title: "JOB TITLE",
+      company: "Company Name",
+      period: "Month Year - Month Year",
+      points: ["Responsible for planning and delivering lessons..."]
+    };
+    const newExperience = [...result.experience, newExpItem];
+    onUpdate({ ...result, experience: newExperience });
+  };
+
+  const handleDeleteExperience = (idx: number) => {
+    if (!onUpdate) return;
+    const newExp = [...result.experience];
+    newExp.splice(idx, 1);
+    onUpdate({ ...result, experience: newExp });
+  };
+
+  const handleAddPoint = (expIndex: number) => {
+    if (!onUpdate) return;
+    const newExp = [...result.experience];
+    const newPoints = [...newExp[expIndex].points, "New responsibility or achievement..."];
+    newExp[expIndex] = { ...newExp[expIndex], points: newPoints };
+    onUpdate({ ...result, experience: newExp });
+  };
+  
+  const handleDeletePoint = (expIndex: number, pointIndex: number) => {
+    if (!onUpdate) return;
+    const newExp = [...result.experience];
+    const newPoints = [...newExp[expIndex].points];
+    newPoints.splice(pointIndex, 1);
+    newExp[expIndex] = { ...newExp[expIndex], points: newPoints };
+    onUpdate({ ...result, experience: newExp });
+  };
+
   const splitExperiencesIntoPages = () => {
     const pages: any[] = [];
     let currentExpList: any[] = [];
     
-    // Limits adjusted for the new 20mm bottom padding
-    const UNIT_LIMIT_PAGE_1 = 200; 
-    const UNIT_LIMIT_OTHER = 220;  
+    // --- PAGE LIMITS ---
+    // Kept generous to fill the page, but relies on button being external now
+    const UNIT_LIMIT_PAGE_1 = 240; 
+    const UNIT_LIMIT_OTHER = 285;  
     
-    const WEIGHT_EXP_HEADER = 12;   
-    const WEIGHT_LINE_UNIT = 5.0;   
-    const WEIGHT_EDUCATION_HEADER = 20;
+    const WEIGHT_EXP_HEADER = 25;   
+    const WEIGHT_LINE_UNIT = 6;   
+    const WEIGHT_EDUCATION_HEADER = 30;
 
-    let educationWeight = WEIGHT_EDUCATION_HEADER + (result.education.length * 5);
+    let educationWeight = 0;
+    if (result.education.length > 0) {
+        educationWeight = WEIGHT_EDUCATION_HEADER + (result.education.length * WEIGHT_LINE_UNIT);
+    }
+    
     let currentWeight = educationWeight; 
     let isFirstPage = true;
 
     result.experience.forEach((exp, idx) => {
-      const pointsWeight = exp.points.reduce((acc, point) => {
-        const estimatedLines = Math.ceil(point.length / 70) || 1;
-        return acc + (estimatedLines * WEIGHT_LINE_UNIT);
-      }, 0);
+      // Calculate weight for bullet points
+      let pointsWeight = 0;
+      if (exp.points && exp.points.length > 0) {
+         pointsWeight = exp.points.reduce((acc, point) => {
+          // Approximate: 75 chars per line
+          const estimatedLines = Math.max(1, Math.ceil(point.length / 75));
+          return acc + (estimatedLines * WEIGHT_LINE_UNIT);
+        }, 0);
+      } else {
+        // Minimum weight for empty points container
+        pointsWeight = WEIGHT_LINE_UNIT;
+      }
 
       const expWeight = WEIGHT_EXP_HEADER + pointsWeight;
       const limit = isFirstPage ? UNIT_LIMIT_PAGE_1 : UNIT_LIMIT_OTHER;
-      const tolerance = 15;
 
-      if (currentWeight + expWeight > limit + (currentExpList.length > 0 ? 0 : tolerance)) {
+      // Check if adding this experience exceeds the limit
+      if (currentWeight + expWeight > limit) {
         if (currentExpList.length > 0) {
+          // Finish current page
           pages.push({
             isFirst: isFirstPage,
             experience: currentExpList,
             showEducation: isFirstPage
           });
           
+          // Start new page with this experience
           currentExpList = [{ ...exp, originalIdx: idx }];
           currentWeight = expWeight;
           isFirstPage = false;
         } else {
+          // If a single experience is too big but it's the only thing, it must go here
           currentExpList.push({ ...exp, originalIdx: idx });
           currentWeight += expWeight;
         }
       } else {
+        // Fits on current page
         currentExpList.push({ ...exp, originalIdx: idx });
         currentWeight += expWeight;
       }
@@ -343,6 +403,12 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
         experience: currentExpList,
         showEducation: isFirstPage
       });
+    } else if (pages.length === 0) {
+      pages.push({
+        isFirst: true,
+        experience: [],
+        showEducation: true
+      });
     }
 
     return pages;
@@ -353,7 +419,7 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
   return (
     <div id="cv-pages-container" className="flex flex-col space-y-8 items-center bg-slate-200/20 p-8 print:p-0 print:space-y-0" style={HELVETICA_FONT}>
       {pages.map((page, pIdx) => (
-        <div key={pIdx} className="a4-page shadow-2xl flex print:shadow-none mb-8 last:mb-0 shrink-0 overflow-hidden group">
+        <div key={pIdx} className="a4-page shadow-2xl flex print:shadow-none mb-8 last:mb-0 shrink-0 overflow-visible group">
           
           <Sidebar 
             result={result} 
@@ -405,7 +471,7 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
                   {result.education.map((edu, idx) => (
                     <div key={idx} className="flex items-start group/edu relative">
                       <span className="text-[#F26522] text-[12px] mr-2 leading-tight font-bold shrink-0 mt-[2px]">➢</span>
-                      <p className="text-[12px] font-bold leading-tight uppercase text-slate-800">
+                      <p className="text-[12px] font-bold leading-tight uppercase text-slate-800 flex-1">
                         <EditableMainText 
                           value={edu} 
                           onBlur={(v) => handleEducationChange(idx, v)} 
@@ -414,8 +480,8 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
                       </p>
                        {isEditable && (
                         <button
-                          onClick={() => handleEducationChange(idx, "")}
-                          className="absolute -left-6 top-0 text-red-300 hover:text-red-500 opacity-0 group-hover/edu:opacity-100 transition-opacity"
+                          onClick={() => handleDeleteEducation(idx)}
+                          className="absolute -left-6 top-0 text-red-300 hover:text-red-500 opacity-0 group-hover/edu:opacity-100 transition-opacity font-bold text-lg leading-none p-1"
                           title="Xóa dòng này"
                         >
                           ×
@@ -423,6 +489,15 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
                       )}
                     </div>
                   ))}
+                  
+                  {isEditable && (
+                    <button 
+                      onClick={handleAddEducation}
+                      className="text-[10px] text-slate-400 font-bold border border-dashed border-slate-300 rounded px-2 py-1 hover:text-[#F26522] hover:border-[#F26522] transition-colors mt-2"
+                    >
+                      + Add Education
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -435,8 +510,9 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
                 {page.experience.map((exp: any, idx: number) => {
                    const originalIdx = exp.originalIdx;
                    return (
-                  <div key={idx} className="space-y-2">
-                    <div className="flex items-start">
+                  <div key={idx} className="space-y-2 group/exp relative">
+                    {/* Experience Header */}
+                    <div className="flex items-start relative">
                       <span className="text-[#F26522] text-[12px] mr-2 leading-tight font-bold shrink-0 mt-[2px]">➢</span>
                       <div className="flex-1">
                         <p className="text-[12px] font-black uppercase text-slate-900 leading-tight flex flex-wrap gap-1">
@@ -462,8 +538,20 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
                           <span>):</span>
                         </p>
                       </div>
+                      
+                      {isEditable && (
+                         <button
+                            onClick={() => handleDeleteExperience(originalIdx)}
+                            // Changed from -right-6 to -left-6 to prevent clipping on the right edge
+                            className="absolute -left-8 top-0 text-red-300 hover:text-red-500 opacity-0 group-hover/exp:opacity-100 transition-opacity text-xl font-bold leading-none p-1"
+                            title="Xóa toàn bộ mục này"
+                         >
+                           ×
+                         </button>
+                      )}
                     </div>
-                    {/* Updated to Flex layout for bullet points to fix alignment issues in PDF */}
+
+                    {/* Bullet Points - Using Flexbox for proper alignment */}
                     <div className="space-y-1.5 pl-6">
                       {exp.points.map((point: string, pIdx: number) => (
                         <div key={pIdx} className="flex items-start group/point relative">
@@ -477,8 +565,8 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
                           </div>
                           {isEditable && (
                             <button
-                               onClick={() => handleExperienceChange(originalIdx, 'points', '', pIdx)}
-                               className="absolute -left-5 top-0.5 text-red-300 hover:text-red-500 opacity-0 group-hover/point:opacity-100 transition-opacity font-bold text-lg leading-none"
+                               onClick={() => handleDeletePoint(originalIdx, pIdx)}
+                               className="absolute -left-5 top-0 text-red-300 hover:text-red-500 opacity-0 group-hover/point:opacity-100 transition-opacity font-bold text-lg leading-none p-0.5"
                                title="Xóa bullet này"
                             >
                               ×
@@ -486,6 +574,15 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
                           )}
                         </div>
                       ))}
+                      
+                      {isEditable && (
+                         <button 
+                            onClick={() => handleAddPoint(originalIdx)}
+                            className="text-[9px] text-slate-300 font-bold border border-dashed border-slate-200 rounded px-1.5 py-0.5 hover:text-blue-500 hover:border-blue-500 transition-colors opacity-0 group-hover/exp:opacity-100 mt-1"
+                          >
+                            + Add Bullet
+                          </button>
+                      )}
                     </div>
                   </div>
                 )})}
@@ -498,6 +595,18 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
           </div>
         </div>
       ))}
+      
+      {/* GLOBAL ADD EXPERIENCE BUTTON (OUTSIDE PAGES) */}
+      {isEditable && (
+         <div className="w-[210mm] flex justify-center py-6 border-t-2 border-dashed border-slate-300/50 print:hidden">
+            <button 
+              onClick={handleAddExperience}
+              className="px-8 py-3 bg-white border-2 border-dashed border-[#F26522] text-[#F26522] font-black uppercase text-xs rounded-xl hover:bg-[#F26522] hover:text-white transition-all shadow-sm"
+            >
+              + Add New Experience Block (Create new page if needed)
+            </button>
+         </div>
+      )}
     </div>
   );
 };

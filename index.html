@@ -22,7 +22,7 @@
       min-height: 297mm;
       margin: 0;
       padding: 0;
-      overflow: hidden;
+      overflow: visible; /* Changed from hidden to visible to allow buttons to hang out */
       position: relative;
       background: white;
     }
@@ -34,6 +34,7 @@
         min-width: unset;
         min-height: unset;
         aspect-ratio: 1 / 1.414;
+        overflow: hidden; /* Keep hidden on mobile to prevent layout breakage */
       }
     }
   </style>
