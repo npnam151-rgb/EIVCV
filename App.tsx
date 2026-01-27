@@ -7,6 +7,7 @@ import Footer from './components/Footer';
 import CVInputForm from './components/CVInputForm';
 import ResultDisplay from './components/ResultDisplay';
 import LoadingOverlay from './components/LoadingOverlay';
+import UserGuideModal from './components/UserGuideModal';
 
 interface FileInfo {
   name: string;
@@ -18,6 +19,7 @@ const App: React.FC = () => {
   const [status, setStatus] = useState<AppStatus>(AppStatus.IDLE);
   const [result, setResult] = useState<CVAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showGuide, setShowGuide] = useState(false);
 
   const handleProcess = useCallback(async (
     cvInput: string | FileInfo,
@@ -111,9 +113,11 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      <Header />
+    <div className="min-h-screen flex flex-col bg-slate-50 relative">
+      <Header onOpenGuide={() => setShowGuide(true)} />
       
+      <UserGuideModal isOpen={showGuide} onClose={() => setShowGuide(false)} />
+
       <main className="flex-grow container mx-auto px-4 py-12 max-w-7xl print:max-w-none print:p-0">
         {error && (
           <div className="mb-8 p-6 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-xl shadow-sm animate-in fade-in duration-300">
