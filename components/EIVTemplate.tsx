@@ -264,7 +264,11 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
   const handleEducationChange = (idx: number, value: string) => {
     if (!onUpdate) return;
     const newEdu = [...result.education];
-    newEdu[idx] = value;
+    if (value.trim() === "") {
+        newEdu.splice(idx, 1); // Delete if empty
+    } else {
+        newEdu[idx] = value;
+    }
     onUpdate({ ...result, education: newEdu });
   };
 
@@ -273,7 +277,12 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
     const newExp = [...result.experience];
     if (pointIdx !== undefined) {
       const newPoints = [...newExp[expIdx].points];
-      newPoints[pointIdx] = value;
+      // Logic: Nếu giá trị trống (người dùng xóa hết chữ), xóa luôn dòng đó khỏi mảng
+      if (typeof value === 'string' && value.trim() === '') {
+        newPoints.splice(pointIdx, 1);
+      } else {
+        newPoints[pointIdx] = value;
+      }
       newExp[expIdx] = { ...newExp[expIdx], points: newPoints };
     } else {
       newExp[expIdx] = { ...newExp[expIdx], [field]: value };
@@ -394,8 +403,8 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
                 </h3>
                 <div className="space-y-3">
                   {result.education.map((edu, idx) => (
-                    <div key={idx} className="flex items-start">
-                      <span className="text-[#F26522] text-[12px] mr-2 leading-tight font-bold">➢</span>
+                    <div key={idx} className="flex items-start group/edu relative">
+                      <span className="text-[#F26522] text-[12px] mr-2 leading-tight font-bold shrink-0 mt-[2px]">➢</span>
                       <p className="text-[12px] font-bold leading-tight uppercase text-slate-800">
                         <EditableMainText 
                           value={edu} 
@@ -403,6 +412,15 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
                           isEditable={isEditable}
                         />
                       </p>
+                       {isEditable && (
+                        <button
+                          onClick={() => handleEducationChange(idx, "")}
+                          className="absolute -left-6 top-0 text-red-300 hover:text-red-500 opacity-0 group-hover/edu:opacity-100 transition-opacity"
+                          title="Xóa dòng này"
+                        >
+                          ×
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -419,7 +437,7 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
                    return (
                   <div key={idx} className="space-y-2">
                     <div className="flex items-start">
-                      <span className="text-[#F26522] text-[12px] mr-2 leading-tight font-bold">➢</span>
+                      <span className="text-[#F26522] text-[12px] mr-2 leading-tight font-bold shrink-0 mt-[2px]">➢</span>
                       <div className="flex-1">
                         <p className="text-[12px] font-black uppercase text-slate-900 leading-tight flex flex-wrap gap-1">
                           <EditableMainText 
@@ -445,17 +463,30 @@ const EIVTemplate: React.FC<EIVTemplateProps> = ({ result, isEditable = false, o
                         </p>
                       </div>
                     </div>
-                    <ul className="pl-6 space-y-1.5">
+                    {/* Updated to Flex layout for bullet points to fix alignment issues in PDF */}
+                    <div className="space-y-1.5 pl-6">
                       {exp.points.map((point: string, pIdx: number) => (
-                        <li key={pIdx} className="text-[12px] list-disc pl-1 leading-relaxed text-slate-700 font-medium text-justify">
-                          <EditableMainText 
-                            value={point} 
-                            onBlur={(v) => handleExperienceChange(originalIdx, 'points', v, pIdx)} 
-                            isEditable={isEditable}
-                          />
-                        </li>
+                        <div key={pIdx} className="flex items-start group/point relative">
+                          <span className="text-slate-800 text-[18px] mr-2 leading-none shrink-0 select-none" style={{ marginTop: '-4px' }}>•</span>
+                          <div className="text-[12px] leading-relaxed text-slate-700 font-medium text-justify flex-1">
+                            <EditableMainText 
+                              value={point} 
+                              onBlur={(v) => handleExperienceChange(originalIdx, 'points', v, pIdx)} 
+                              isEditable={isEditable}
+                            />
+                          </div>
+                          {isEditable && (
+                            <button
+                               onClick={() => handleExperienceChange(originalIdx, 'points', '', pIdx)}
+                               className="absolute -left-5 top-0.5 text-red-300 hover:text-red-500 opacity-0 group-hover/point:opacity-100 transition-opacity font-bold text-lg leading-none"
+                               title="Xóa bullet này"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
                 )})}
               </div>
