@@ -41,7 +41,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenGuide }) => {
           </a>
           <a 
             href="#" 
-            onClick={(e) => { e.preventDefault(); alert("Tính năng đang phát triển: Ứng dụng hỗ trợ tạo câu hỏi và chấm điểm phỏng vấn giáo viên."); }}
+            onClick={(e) => { e.preventDefault(); alert("EIV"); }}
             className="hover:text-[#F26522] transition-colors border-b-2 border-transparent hover:border-[#F26522] pb-1"
           >
             TRỢ LÝ PHỎNG VẤN
