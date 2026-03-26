@@ -32,7 +32,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenGuide }) => {
             HƯỚNG DẪN
           </button>
           <a 
-            href="https://loc-cv.vercel.app/" 
+            href="https://hireteacher.eiv.edu.vn/" 
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-[#F26522] transition-colors border-b-2 border-transparent hover:border-[#F26522] pb-1"
