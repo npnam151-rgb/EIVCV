@@ -89,7 +89,7 @@ export const processHeadshot = async (photoData: FileData): Promise<string> => {
     
     // Cast config to any to avoid TS errors with preview features like imageConfig in some SDK versions
     const response = await ai.models.generateContent({
-      model: 'minimax/minimax-m2.5:free',
+      model: 'gemini-2.5-flash-image',
       contents: {
         parts: [
           {
@@ -197,7 +197,7 @@ export const optimizeCV = async (
     }
 
     const response = await ai.models.generateContent({
-      model: "minimax/minimax-m2.5:free",
+      model: "gemini-3.1-flash-lite-preview",
       contents: { parts },
       config: {
         responseMimeType: "application/json",
@@ -253,7 +253,7 @@ export const refineCV = async (
     ];
 
     const response = await ai.models.generateContent({
-      model: "minimax/minimax-m2.5:free",
+      model: "gemini-3.1-flash-lite-preview",
       contents: { parts },
       config: {
         responseMimeType: "application/json",
